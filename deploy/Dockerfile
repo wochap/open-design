@@ -90,12 +90,16 @@ FROM ${RUNTIME_IMAGE}
 # The postinstall copies the platform binary into bin/, so the per-platform
 # optional dependencies are dropped afterwards (~540 MB). ripgrep avoids
 # OpenCode downloading its own copy at runtime.
+# The version check runs as root and leaves root-owned dirs in /tmp. Podman
+# copies image /tmp into the tmpfs, so OpenCode could not write its scratch
+# dir /tmp/opencode at runtime.
 ARG OPENCODE_VERSION=1.18.32
 
 RUN apk add --no-cache tini poppler-utils bash git ripgrep && \
     npm install -g --no-fund --no-audit opencode-ai@${OPENCODE_VERSION} && \
     rm -rf /usr/local/lib/node_modules/opencode-ai/node_modules /root/.npm && \
     opencode --version && \
+    rm -rf /tmp/opencode /tmp/node-compile-cache && \
     addgroup -S -g 1001 open-design && \
     adduser -S -D -H -u 1001 -G open-design open-design
 
