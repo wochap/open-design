@@ -93,9 +93,10 @@ FROM ${RUNTIME_IMAGE}
 # The version check runs as root and leaves root-owned dirs in /tmp. Podman
 # copies image /tmp into the tmpfs, so OpenCode could not write its scratch
 # dir /tmp/opencode at runtime.
+# Agents reach for python3 + Pillow to inspect attached images (size, colors).
 ARG OPENCODE_VERSION=1.18.32
 
-RUN apk add --no-cache tini poppler-utils bash git ripgrep && \
+RUN apk add --no-cache tini poppler-utils bash git ripgrep python3 py3-pillow && \
     npm install -g --no-fund --no-audit opencode-ai@${OPENCODE_VERSION} && \
     rm -rf /usr/local/lib/node_modules/opencode-ai/node_modules /root/.npm && \
     opencode --version && \
