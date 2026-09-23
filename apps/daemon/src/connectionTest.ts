@@ -60,6 +60,7 @@ import {
   isUnsupportedMaxTokensError,
 } from './integrations/openai-chat-token-params.js';
 import { aihubmixHeaders } from './integrations/aihubmix.js';
+import { inspectAliasRoutedOpenAiCompletion } from './connection-test-alias-echo.js';
 import type { AgentCliEnvPrefs } from './app-config.js';
 import type { RuntimeAgentDef } from './runtimes/types.js';
 import { preparePromptFileForAgent, type PreparedPromptFile } from './runtimes/prompt-file.js';
@@ -395,7 +396,7 @@ export async function assertAndFetchExternalAsset(
 // Aggressive but not punitive — happy paths usually return in under 2 s.
 // Override with OD_CONNECTION_TEST_PROVIDER_TIMEOUT_MS for slow networks
 // or distant providers; invalid values fall back to the default.
-const DEFAULT_PROVIDER_TIMEOUT_MS = 12_000;
+const DEFAULT_PROVIDER_TIMEOUT_MS = 30_000;
 const LOOPBACK_NO_PROXY_TOKENS = ['localhost', '127.0.0.1', '[::1]'] as const;
 // CLI boot time is dominated by adapter auth/session restore; the heavy
 // adapters (Codex, Cursor Agent) regularly take 5–10 s on a cold first
@@ -947,6 +948,8 @@ function inspectProviderCompletion(
   if (!obj) return { valid: false };
 
   if (protocol === 'openai' || protocol === 'azure' || protocol === 'senseaudio' || protocol === 'aihubmix') {
+    const aliasRouted = inspectAliasRoutedOpenAiCompletion(protocol, data, requestedModel, enforceResponseModel);
+    if (aliasRouted) return aliasRouted;
     const responseModel = typeof obj.model === 'string' ? obj.model : '';
     if (
       // AIHubMix is omitted from the strict response-model check (like Azure):
@@ -1812,6 +1815,7 @@ export async function testProviderConnection(
           `[test:provider] ${input.protocol} ${validated.parsed.hostname} model=${input.model} → ${response.status} in ${latencyMs}ms (connected_unexpected_sample) ${sample}`,
         );
       }
+      if (completion.detail) console.log(`[test:provider] ${input.protocol} ${validated.parsed.hostname} model=${input.model} ${redactSecrets(completion.detail, [input.apiKey])}`);
       console.log(
         `[test:provider] ${input.protocol} ${validated.parsed.hostname} model=${input.model} → ${response.status} in ${latencyMs}ms`,
       );
@@ -1822,6 +1826,7 @@ export async function testProviderConnection(
         model,
         status: response.status,
         sample,
+        ...(completion.detail ? { detail: redactSecrets(completion.detail, [input.apiKey]) } : {}),
       };
     }
     // Non-2xx: read body for redacted detail, then map status → kind.

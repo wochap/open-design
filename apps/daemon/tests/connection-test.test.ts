@@ -1322,6 +1322,44 @@ describe('POST /api/test/connection provider mode', () => {
     ).toBe(false);
   });
 
+  it('accepts an alias-routed local gateway that echoes the resolved upstream model', async () => {
+    const fetchMock = passThroughOrUpstream((url) => {
+      if (url === 'http://localhost:1234/v1/models') {
+        return jsonResponse({
+          data: [{ id: 'ds/deepseek-flash', object: 'model' }],
+        });
+      }
+      return jsonResponse({
+        model: 'deepseek-flash',
+        choices: [
+          {
+            message: { role: 'assistant', content: 'ok' },
+            finish_reason: 'stop',
+          },
+        ],
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await realFetch(`${baseUrl}/api/test/connection`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'provider',
+        protocol: 'openai',
+        baseUrl: 'http://localhost:1234/v1',
+        apiKey: 'gateway-key',
+        model: 'ds/deepseek-flash',
+      }),
+    });
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.ok).toBe(true);
+    expect(body.kind).toBe('success');
+    expect(body.model).toBe('ds/deepseek-flash');
+    expect(body.detail).toContain('Served by "deepseek-flash"');
+    expect(body.detail).toContain('requested "ds/deepseek-flash"');
+  });
+
   it('reports forbidden for an internal-IP base URL without calling fetch', async () => {
     const fetchMock = passThroughOrUpstream(() => jsonResponse({}));
     vi.stubGlobal('fetch', fetchMock);
