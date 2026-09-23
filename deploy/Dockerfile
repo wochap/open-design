@@ -85,7 +85,17 @@ COPY plugins/_official ./plugins/_official
 
 FROM ${RUNTIME_IMAGE}
 
-RUN apk add --no-cache tini poppler-utils bash git && \
+# BYOK API runs execute through the OpenCode CLI (runtimes/byok-opencode.ts);
+# without it every API-mode run fails with "BYOK API runs require OpenCode".
+# The postinstall copies the platform binary into bin/, so the per-platform
+# optional dependencies are dropped afterwards (~540 MB). ripgrep avoids
+# OpenCode downloading its own copy at runtime.
+ARG OPENCODE_VERSION=1.18.32
+
+RUN apk add --no-cache tini poppler-utils bash git ripgrep && \
+    npm install -g --no-fund --no-audit opencode-ai@${OPENCODE_VERSION} && \
+    rm -rf /usr/local/lib/node_modules/opencode-ai/node_modules /root/.npm && \
+    opencode --version && \
     addgroup -S -g 1001 open-design && \
     adduser -S -D -H -u 1001 -G open-design open-design
 
