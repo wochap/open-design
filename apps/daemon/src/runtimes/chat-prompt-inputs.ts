@@ -327,12 +327,18 @@ export function resolveChatExtraAllowedDirs({
   agentId,
   skillsDir,
   designSystemsDir,
+  bundledPluginsDir,
   linkedDirs = [],
   existsSync = fs.existsSync,
 }: {
   agentId?: string | null;
   skillsDir?: string | null;
   designSystemsDir?: string | null;
+  // Plugin skills (e.g. `plugins/_official/examples/web-prototype`) live
+  // here, and the skill preamble advertises this absolute path as the
+  // fallback skill root. Without it, headless OpenCode auto-rejects the
+  // fallback read as `external_directory`.
+  bundledPluginsDir?: string | null;
   linkedDirs?: Array<string | null | undefined>;
   existsSync?: (path: string) => boolean;
 }): string[] {
@@ -343,6 +349,7 @@ export function resolveChatExtraAllowedDirs({
     : [
         skillsDir,
         designSystemsDir,
+        bundledPluginsDir,
         ...(Array.isArray(linkedDirs) ? linkedDirs : []),
       ];
   return Array.from(

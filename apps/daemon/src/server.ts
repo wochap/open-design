@@ -11775,6 +11775,7 @@ export async function startServer({
         agentId,
         skillsDir: SKILLS_DIR,
         designSystemsDir: DESIGN_SYSTEMS_DIR,
+        bundledPluginsDir: BUNDLED_PLUGINS_DIR,
         linkedDirs,
       }),
       ...(odNextTaskInputSnapshot

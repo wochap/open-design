@@ -4579,6 +4579,7 @@ describe('chat prompt helpers', () => {
       agentId: '  CoDeX  ',
       skillsDir: '/repo/skills',
       designSystemsDir: '/repo/design-systems',
+      bundledPluginsDir: '/repo/plugins/_official',
       linkedDirs: ['/linked/reference'],
       existsSync: () => true,
     });
@@ -4590,12 +4591,14 @@ describe('chat prompt helpers', () => {
     const existingDirs = new Set([
       '/repo/skills',
       '/repo/design-systems',
+      '/repo/plugins/_official',
       '/linked/reference',
     ]);
     const dirs = resolveChatExtraAllowedDirs({
       agentId: 'claude',
       skillsDir: '/repo/skills',
       designSystemsDir: '/repo/design-systems',
+      bundledPluginsDir: '/repo/plugins/_official',
       linkedDirs: ['/linked/reference'],
       existsSync: (dir: string) => existingDirs.has(dir),
     });
@@ -4603,6 +4606,7 @@ describe('chat prompt helpers', () => {
     expect(dirs).toEqual([
       '/repo/skills',
       '/repo/design-systems',
+      '/repo/plugins/_official',
       '/linked/reference',
     ]);
   });
