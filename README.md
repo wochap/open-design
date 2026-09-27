@@ -6,6 +6,13 @@
 >
 > 🧩 **[DeepSeek Harness is now supported.](https://open-design.ai/zh/agents/deepseek-harness-design/)** Connect DeepSeek's official `dsh` agent harness to OpenDesign as a native runtime, with structured thinking, tool calls, model discovery, cancellation, and session resume. Generated files stay in the OpenDesign workflow for live preview and delivery.
 
+> **This fork's changes:**
+> - Fix BYOK connection test to accept alias-routed model echo
+> - Bundle OpenCode CLI in the runtime image
+> - Allow bundled plugin dir for headless agents
+> - Drop root-owned /tmp dirs left by the OpenCode check
+> - Add python3 and Pillow to the runtime image
+
 <p align="center">
   <img src="https://repo-assets.open-design.ai/resources/images/hero.png" alt="OpenDesign hero banner — the headline &quot;The open-source Claude Design alternative&quot; over a classical scene of columns and robed figures on a digital-code backdrop, with stat cards for design systems, plugins, coding agents, and media providers" width="100%" />
 </p>
